@@ -7,17 +7,25 @@ if exists("b:current_syntax")
   finish
 endif
 
+syn sync fromstart
+
 " basic
 " contract, library and event are defined at bottom of file
-syn keyword solKeyword           abstract anonymous as break calldata case catch constant constructor continue default switch revert require
-syn keyword solKeyword           ecrecover addmod mulmod keccak256
-syn keyword solKeyword           delete do else emit enum external final for function if immutable import in indexed inline
-syn keyword solKeyword           interface internal is let match memory modifier new of payable pragma private public pure override virtual
-syn keyword solKeyword           relocatable return returns static storage struct throw try type typeof using
-syn keyword solKeyword           var view while
+syn keyword solKeyword           abstract anonymous as break calldata case constant constructor continue default switch revert require
+syn keyword solKeyword           delete enum final immutable in indexed inline var
+syn keyword solKeyword           is let match memory modifier of
+syn keyword solKeyword           contract interface library struct event
+syn keyword solKeyword           function modifier fallback receive
+syn keyword solKeyword           relocatable returns static storage throw type typeof
+syn keyword solKeyword           if else for do while
+syn keyword solSpecifier         internal external private public pure view override virtual
+syn keyword solStatement         return import using emit import
+syn keyword solKeyword           unchecked assmbly try catch
 syn keyword solConstant          true false wei szabo finney ether seconds minutes hours days weeks years now
-syn keyword solConstant          abi block blockhash msg tx this super selfdestruct
-syn keyword solBuiltinType       mapping address bool
+syn keyword solGlobalVar         abi block blockhash msg tx
+syn keyword solContractKeyword   this super new selfdestruct
+syn keyword solBuiltinFunction   ecrecover addmod mulmod keccak256
+syn keyword solBuiltinType       mapping bool
 syn keyword solBuiltinType       int int8 int16 int24 int32 int40 int48 int56 int64 int72 int80 int88 int96 int104 int112 int120 int128 int136 int144 int152 int160 int168 int178 int184 int192 int200 int208 int216 int224 int232 int240 int248 int256
 syn keyword solBuiltinType       uint uint8 uint16 uint24 uint32 uint40 uint48 uint56 uint64 uint72 uint80 uint88 uint96 uint104 uint112 uint120 uint128 uint136 uint144 uint152 uint160 uint168 uint178 uint184 uint192 uint200 uint208 uint216 uint224 uint232 uint240 uint248 uint256
 syn keyword solBuiltinType       fixed
@@ -88,76 +96,136 @@ syn keyword solBuiltinType       ufixed240x8 ufixed240x16
 syn keyword solBuiltinType       ufixed248x8
 syn keyword solBuiltinType       string string1 string2 string3 string4 string5 string6 string7 string8 string9 string10 string11 string12 string13 string14 string15 string16 string17 string18 string19 string20 string21 string22 string23 string24 string25 string26 string27 string28 string29 string30 string31 string32
 syn keyword solBuiltinType       byte bytes bytes1 bytes2 bytes3 bytes4 bytes5 bytes6 bytes7 bytes8 bytes9 bytes10 bytes11 bytes12 bytes13 bytes14 bytes15 bytes16 bytes17 bytes18 bytes19 bytes20 bytes21 bytes22 bytes23 bytes24 bytes25 bytes26 bytes27 bytes28 bytes29 bytes30 bytes31 bytes32
+" `address payable` is a type
+syn match   solBuiltinType       /\v<address( payable)?>/
+" When followed by `(`, `payable` is a type (i.e.: casting)
+syn match   solBuiltinType       /\v<payable>\ze\(/
+" When **NOT** followed by `(`, `payable` is a specifier (i.e.: function declarations)
+syn match   solSpecifier         /\v<payable>(\()@!/
 
 hi def link solKeyword           Keyword
+hi def link solSpecifier         Keyword
+hi def link solStatement         Statement
 hi def link solConstant          Constant
+hi def link solContractKeyword   PreProc
 hi def link solBuiltinType       Type
-hi def link solBuiltinFunction   Keyword
+hi def link solAddressPayable    Type
+hi def link solBuiltinTypeArray  Type
+hi def link solGlobalVar         Special
+hi def link solBuiltinFunction   Special
+
+" Pragma declaration
+syn keyword solPragma            pragma skipempty skipwhite nextgroup=solSolidity
+syn keyword solSolidity          contained solidity skipempty skipwhite nextgroup=solVersion
+syn match solVersion             contained /\v(\^|\>|\>\=|\<|\<\=|\~)?\d+\.\d+\.\d+/
+
+hi def link solPragma            Statement
+hi def link solSolidity          Keyword
+hi def link solVersion           Constant
+
+" Functions, modifiers and fallbacks
+syn keyword solFunc              function modifier skipempty skipwhite nextgroup=solFuncName,solFuncArgs
+syn keyword solCtor              constructor skipempty skipwhite nextgroup=solFuncArgs
+syn keyword solFallback          receive fallback skipempty skipwhite nextgroup=solFuncArgs
+syn match   solFuncName          contained /\<\K\k*/ skipempty skipwhite nextgroup=solFuncArgs
+syn region  solFuncArgs          contained matchgroup=solBrackets start='(' end=')' contains=solFuncArgCommas,solBuiltinType,solKeyword,solContant,solBrackets,solNumber skipwhite skipempty nextgroup=solSpecifier,solFuncReturns,solFuncModifierName
+syn match   solFuncModifierName  contained /\<\K\k*/ nextgroup=solSpecifier,solFuncModifierArgs,solFuncReturns,solFuncModifierName skipwhite skipempty
+syn region  solFuncModifierArgs  contained matchgroup=solBrackets start='(' end=')' contains=solGlobalVar,solFuncArgCommas nextgroup=solSpecifier,solFuncModifierName,solFuncReturns skipwhite skipwhite
+syn keyword solFuncReturns       contained returns skipwhite skipempty nextgroup=solFuncReturnsArgs
+syn region  solFuncReturnsArgs   contained matchgroup=solBrackets start='(' end=')' contains=solFuncArgCommas,solBuiltinType skipempty skipwhite
+syn match   solFuncArgCommas     contained ','
+syn match   solModifierIns       /_;/
+
+hi def link solFunc              Keyword
+hi def link solCtor              Keyword
+hi def link solFallback          Keyword
+hi def link solFuncName          Noise
+hi def link solSpecifier         Keyword
+hi def link solFuncReturns       Keyword
+hi def link solModifierIns       Label
+
+" Imports
+syn keyword solImport            import skipwhite skipempty nextgroup=solImportAsterisk,solImportName,solImportGroup
+syn match   solImportAsterisk    contained /\*/ skipwhite skipempty nextgroup=solImportName,solImportAs,solImportFrom
+syn match   solImportName        contained /\<\K\k*/ skipwhite skipempty nextgroup=solImportAs,solImportFrom,solImportComma
+syn keyword solImportAs          contained as skipwhite skipempty nextgroup=solImportName
+syn keyword solImportFrom        contained from skipwhite skipempty nextgroup=solString
+syn match   solImportComma       contained /,/ skipwhite skipempty nextgroup=solImportName,solImportAsterisk,solImportGroup
+syn region  solImportGroup       contained matchgroup=solBrackets start='{' end='}' contains=solImportName,solImportComma,solImportAs,solComment skipwhite skipempty nextgroup=solImportFrom
+
+hi def link solImport            Statement
+hi def link solImportFrom        Keyword
+hi def link solImportAs          Keyword
+hi def link solImportAsterisk    Keyword
+hi def link solImportName        Identifier
+
+" Contract
+syn keyword solContract          contract interface library skipwhite nextgroup=solContractName
+syn match   solContractName      contained /\<\K\k*/ skipwhite skipempty nextgroup=solContractIs
+syn keyword solContractIs        contained is skipwhite skipempty nextgroup=solContractInherit
+syn match   solContractInherit   contained /\<\K\k*/ skipwhite skipempty nextgroup=solContractInherit,solContractCommas
+syn match   solContractCommas    contained ',' skipwhite skipempty nextgroup=solContractInherit
+
+hi def link solContract          Keyword
+hi def link solContractName      Identifier
+hi def link solContractInherit   Identifier
+hi def link solContractIs        Keyword
+
+" Struct
+syn keyword solStruct            struct skipwhite nextgroup=solStructName
+syn match   solStructName        contained /\<\K\k*/ skipwhite skipempty
+
+hi def link solStruct            Keyword
+hi def link solStructName        Identifier
+
+" Event
+syn keyword solEvent             event skipwhite nextgroup=solEventName,solEventArgs
+syn match   solEventName         contained /\<\K\k*/ skipwhite nextgroup=solEventArgs
+syn region  solEventArgs         contained matchgroup=solBrackets start='(' end=')' contains=solEventArgCommas,solBuiltinType,solEventArgSpecial skipwhite skipempty
+syn match   solEventArgCommas    contained ','
+syn keyword solEventArgSpecial   contained indexed
+
+hi def link solEvent             Keyword
+hi def link solEventName         Noise
+hi def link solEventArgSpecial   Label
 
 syn match   solOperator          /\(!\||\|&\|+\|-\|<\|>\|=\|%\|\/\|*\|\~\|\^\)/
-syn match   solNumber            /\<-\=\d\+L\=\>\|\<0[xX]\x\+\>/
+syn match   solBrackets          /[\[\](){}]/
+syn match   solSemi              /;/
+syn match   solNumber      /\v(<0x\x+(_\x+)*>)|(<-?\d+(_\d+)*(\.\d+)*>)/
 syn match   solFloat             /\<-\=\%(\d\+\.\d\+\|\d\+\.\|\.\d\+\)\%([eE][+-]\=\d\+\)\=\>/
-syn region  solString            start=+"+  skip=+\\\\\|\\$"\|\\"+  end=+"+
-syn region  solString            start=+'+  skip=+\\\\\|\\$'\|\\'+  end=+'+
+syn region  solString            start=+"+ skip=+\\\\\|\\$"\|\\"+ end=+"+
+syn region  solString            start=+'+ skip=+\\\\\|\\$'\|\\'+ end=+'+
+syn region  solScope             start='{' end='}' matchgroup=solBrackets transparent skipempty skipwhite keepend extend
 
 hi def link solOperator          Operator
+hi def link solBrackets          Noise
+hi def link solSemi              Label
 hi def link solNumber            Number
 hi def link solFloat             Float
 hi def link solString            String
 
-" Function
-syn match   solFunction          /\<function\>/ nextgroup=solFuncName,solFuncArgs skipwhite
-syn match   solFuncName          contained /\<[a-zA-Z_$][0-9a-zA-Z_$]*/ nextgroup=solFuncArgs skipwhite
-syn region  solFuncArgs          contained matchgroup=solFuncParens start='(' end=')' contains=solFuncArgCommas,solBuiltinType nextgroup=solModifierName,solFuncReturns,solFuncBody keepend skipwhite skipempty
-syn match   solModifierName      contained /\<[a-zA-Z_$][0-9a-zA-Z_$]*/ nextgroup=solModifierArgs,solModifierName skipwhite
-syn region  solModifierArgs      contained matchgroup=solFuncParens start='(' end=')' contains=solFuncArgCommas nextgroup=solModifierName,solFuncReturns,solFuncBody skipwhite
-syn region  solFuncReturns       contained matchgroup=solFuncParens nextgroup=solFuncBody start='(' end=')' contains=solFuncArgCommas,solBuiltinType skipwhite
-syn match   solFuncArgCommas     contained ','
-syn region  solFuncBody          start="{" end="}" fold transparent
-
-hi def link solFunction          Type
-hi def link solFuncName          Function
-hi def link solModifierName      Function
-
-" Yul blocks
-syn match   yul                  /\<assembly\>/ skipwhite skipempty nextgroup=yulBody
-syn region  yulBody              contained start='{' end='}' fold contains=yulAssemblyOp,solNumber,yulVarDeclaration,solLineComment,solComment skipwhite skipempty
-syn keyword yulAssemblyOp        contained stop add sub mul div sdiv mod smod exp not lt gt slt sgt eq iszero and or xor byte shl shr sar addmod mulmod signextend keccak256 pc pop mload mstore mstore8 sload sstore msize gas address balance selfbalance caller callvalue calldataload calldatasize calldatacopy codesize codecopy extcodesize extcodecopy returndatasize returndatacopy extcodehash create create2 call callcode delegatecall staticcall return revert selfdestruct invalid log0 log1 log2 log3 log4 chainid basefee origin gasprice blockhash coinbase timestamp number difficulty gaslimit
-syn keyword yulVarDeclaration    contained let
-
-hi def link yul                 Keyword
-hi def link yulVarDeclaration   Keyword
-hi def link yulAssemblyOp       Keyword
-
-" Contract
-syn match   solContract          /\<\%(contract\|library\|interface\)\>/ nextgroup=solContractName skipwhite
-syn match   solContractName      contained /\<[a-zA-Z_$][0-9a-zA-Z_$]*/ nextgroup=solContractParent skipwhite
-syn region  solContractParent    contained start='is' end='{' contains=solContractName,solContractNoise,solContractCommas skipwhite skipempty
-syn match   solContractNoise     contained 'is' containedin=solContractParent
-syn match   solContractCommas    contained ','
-
-hi def link solContract          Type
-hi def link solContractName      Function
-
-" Event
-syn match   solEvent             /\<event\>/ nextgroup=solEventName,solEventArgs skipwhite
-syn match   solEventName         contained /\<[a-zA-Z_$][0-9a-zA-Z_$]*/ nextgroup=solEventArgs skipwhite
-syn region  solEventArgs         contained matchgroup=solFuncParens start='(' end=')' contains=solEventArgCommas,solBuiltinType,solEventArgSpecial skipwhite skipempty
-syn match   solEventArgCommas    contained ','
-syn match   solEventArgSpecial   contained 'indexed'
-
-hi def link solEvent             Type
-hi def link solEventName         Function
-hi def link solEventArgSpecial   Label
-
 " Comment
-syn keyword solCommentTodo       TODO FIXME XXX TBD contained
-syn match solNatSpec             contained /@title\|@author\|@notice\|@dev\|@param\|@inheritdoc\|@return/
+syn keyword solCommentTodo       contained TODO FIXME XXX TBD
+syn match   solNatSpec           contained /@title\|@author\|@notice\|@dev\|@param\|@inheritdoc\|@return/
 syn region  solLineComment       start=+\/\/+ end=+$+ contains=solCommentTodo,solNatSpec,@Spell
-syn region  solLineComment       start=+^\s*\/\/+ skip=+\n\s*\/\/+ end=+$+ contains=solCommentTodo,solNatSpec,@Spell fold
-syn region  solComment           start="/\*"  end="\*/" contains=solCommentTodo,solNatSpec,@Spell fold
+syn region  solLineComment       start=+^\s*\/\/+ skip=+\n\s*\/\/+ end=+$+ contains=solCommentTodo,solNatSpec,@Spell
+syn region  solComment           start="/\*"  end="\*/" contains=solCommentTodo,solNatSpec,@Spell
 
 hi def link solCommentTodo       Todo
 hi def link solNatSpec           Label
 hi def link solLineComment       Comment
 hi def link solComment           Comment
+
+" Yul blocks
+syn keyword yul                  assembly skipwhite skipempty nextgroup=yulBody
+syn region  yulBody              contained matchgroup=solBrackets start='{' end='}' contains=yulAssemblyOp,solNumber,yulVarDeclaration,solLineComment,solComment,solString skipwhite skipempty
+syn keyword yulAssemblyOp        contained stop add sub mul div sdiv mod smod exp not lt gt slt sgt eq iszero and or xor byte shl shr sar addmod mulmod signextend keccak256 pc pop mload mstore mstore8 sload sstore msize gas address balance selfbalance caller callvalue calldataload calldatasize calldatacopy codesize codecopy extcodesize extcodecopy returndatasize returndatacopy extcodehash create create2 call callcode delegatecall staticcall return revert selfdestruct invalid log0 log1 log2 log3 log4 chainid basefee origin gasprice blockhash coinbase timestamp number difficulty gaslimit
+syn keyword yulVarDeclaration    contained let
+
+hi def link yul                  Keyword
+hi def link yulVarDeclaration    Keyword
+hi def link yulAssemblyOp        Keyword
+
+
+let b:current_syntax ="solidity"

@@ -1,29 +1,47 @@
 # vim-solidity
 
-Maintained syntax files for [Solidity](https://github.com/ethereum/solidity),
-the smart contract programming language for Ethereum.
+Yet another maintained syntax [Solidity](https://github.com/ethereum/solidity), the smart contract programming language
+for Ethereum.
+
+Heavily inspired by [`thesis/vim-solidity`](https://github.com/thesis/vim-solidity).
+
+## Main Changes
+
+- Add support for some missing Solidity features
+    - `unchecked { ... }` blocks
+    - `receive` and `fallback` functions
+    - Numeric separators
+- Improve `import` syntax highlighting
+- Improve `pragma` syntax highlighting
+- Use saner highlights for `contract`, `interface`, `library` and `struct`
+- Use different colors for Solidity global variables and functions
+- Use different colors for contract-related keywords
+- Disable syntax folding (TODO: fix and re-enable it)
+
+![before-after](https://i.imgur.com/TpbZO1f.png)
+Before / After
 
 ## Installation
 
-### Pathogen
-Run the following command:
+### Vim Plug
+Add the following line to your `~/.vimrc`:
 
-```bash
-git clone https://github.com/thesis/vim-solidity.git ~/.vim/bundle/vim-solidity
+```vim
+Plug 'thesis/vim-solidity'
 ```
 
 ### Vundle
+
 Add the following line to your `~/.vimrc`:
 
 ```vim
 Plugin 'thesis/vim-solidity'
 ```
+### Pathogen
+Run the following command:
 
-### Plug
-Add the following line to your `~/.vimrc`:
-
-```vim
-Plug 'thesis/vim-solidity', {'branch': 'main' }
+```bash
+git clone https://github.com/hbarcelost/vim-solidity.git ~/.vim/bundle/vim-solidity
 ```
 
 ### No Plugin Manager
@@ -39,5 +57,4 @@ augroup solidity_folding
 augroup END
 ```
 
-Will enable Solidity code-folding based on the included syntax file. This might
-have an impact on editing performance.
+Will enable Solidity code-folding based on the included syntax file. This might have an impact on editing performance.
