@@ -13,13 +13,26 @@ Heavily inspired by [`thesis/vim-solidity`](https://github.com/thesis/vim-solidi
     - Numeric separators
 - Improve `import` syntax highlighting
 - Improve `pragma` syntax highlighting
+- Use heuristic for user-defined types
 - Use saner highlights for `contract`, `interface`, `library` and `struct`
-- Use different colors for Solidity global variables and functions
-- Use different colors for contract-related keywords
-- Disable syntax folding (TODO: fix and re-enable it)
+- Highlight function and event names on definition
+- Use special colors for Solidity global variables and builtin functions
 
-![before-after](https://i.imgur.com/TpbZO1f.png)
+![before-after-1](https://i.imgur.com/FYh11cG.png)
 Before / After
+
+![before-after-2](https://i.imgur.com/mnnOLKO.png)
+Before / After
+
+![before-after-3](https://i.imgur.com/H3raQhh.png)
+Before / After
+
+![before-after-4](https://i.imgur.com/qYLhEMu.png)
+Before / After
+
+## Known Issues
+
+- Folding is not working properly in all cases.
 
 ## Installation
 
