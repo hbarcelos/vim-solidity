@@ -3,6 +3,7 @@ augroup solidity
 
   au BufNewFile,BufRead *.sol setf solidity
   " Improve comment syntax highlighting
-  " If fromstart is too slow, see :help :syn-sync-ccomment
-  au BufReadPost,BufNewFile *.sol syntax sync fromstart
+  " sync fromstart can be too slow for large files
+  " au BufReadPost,BufNewFile *.sol syntax sync fromstart
+  au BufReadPost,BufNewFile *.sol syntax sync ccomment
 augroup END

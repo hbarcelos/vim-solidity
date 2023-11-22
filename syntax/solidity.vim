@@ -111,7 +111,7 @@ syn keyword solBuiltinType     ufixed240x8 ufixed240x16
 syn keyword solBuiltinType     ufixed248x8
 syn keyword solBuiltinType     byte bytes bytes1 bytes2 bytes3 bytes4 bytes5 bytes6 bytes7 bytes8 bytes9 bytes10 bytes11 bytes12 bytes13 bytes14 bytes15 bytes16 bytes17 bytes18 bytes19 bytes20 bytes21 bytes22 bytes23 bytes24 bytes25 bytes26 bytes27 bytes28 bytes29 bytes30 bytes31 bytes32
 " `address payable` is a type
-syn match   solBuiltinType     /\v<address( payable)?>/
+syn match   solBuiltinType     /\v<address(\_s+payable>)?>/
 " When followed by `(`, `payable` is a type (i.e.: casting)
 syn match   solBuiltinType     /\v<payable>\ze\(/
 " When **NOT** followed by `(`, `payable` is a specifier (i.e.: function declarations)
@@ -119,10 +119,10 @@ syn match   solSpecifier       /\v<payable>(\()@!/
 
 syn keyword solGlobalVar       abi block msg tx now skipwhite nextgroup=solGlobalVarDot
 syn match solGlobalVarDot      contained /\./ skipwhite nextgroup=solGlobalVarMember
-syn match solGlobalVarMember   contained /\v(abi\.)@<=(decode|encode|encodePacked|encodeWithSelector|encodeCall|encodeWithSignature)>/
-syn match solGlobalVarMember   contained /\v(block\.)@<=(basefee|chainid|coinbase|difficulty|gaslimit|number|prevrandao|timestamp)>/
-syn match solGlobalVarMember   contained /\v(msg\.)@<=(data|sender|sig|value)>/
-syn match solGlobalVarMember   contained /\v(tx\.)@<=(gasprice|origin)>/
+syn match solGlobalVarMember   contained /\v(abi\_s*\.\_s*)@<=(decode|encode|encodePacked|encodeWithSelector|encodeCall|encodeWithSignature)>/
+syn match solGlobalVarMember   contained /\v(block\_s*\.\_s*)@<=(basefee|chainid|coinbase|difficulty|gaslimit|number|prevrandao|timestamp)>/
+syn match solGlobalVarMember   contained /\v(msg\_s*\.\_s*)@<=(data|sender|sig|value)>/
+syn match solGlobalVarMember   contained /\v(tx\_s*\.\_s*)@<=(gasprice|origin)>/
 
 hi def link solKeyword          Keyword
 hi def link solSpecifier        Keyword
@@ -144,7 +144,7 @@ syn match   solNumber   /\v(<0x\x+(_\x+)*>)|(<-?\d+(_\d+)*(\.\d+)*>)/
 syn match   solFloat    /\<-\=\%(\d\+\.\d\+\|\d\+\.\|\.\d\+\)\%([eE][+-]\=\d\+\)\=\>/
 syn region  solString   start=+"+ skip=+\\\\\|\\$"\|\\"+ end=+"+
 syn region  solString   start=+'+ skip=+\\\\\|\\$'\|\\'+ end=+'+
-syn region  solScope    start='{' end='}' matchgroup=solBrackets transparent keepend extend fold
+syn region  solScope    matchgroup=solBrackets start='{' end='}' transparent fold
 
 hi def link solOperator Operator
 hi def link solBrackets Normal
@@ -157,21 +157,25 @@ hi def link solString   String
 " warn: this section assumes user-defined types start with an upper-case letter.
 
 " Beginning of line (i.e.: variable declarations)
-syn match solUserType /\v^\_s*\u\k*((\[[^\]]*\])?(\_s+\k))@=/
+syn match solUserType /\v^\s*\u\k*((\[[^\]]*\])?(\_s+\k))@=/
 " After a comma (i.e.: param list declarations)
-syn match solUserType /\v(^\_s*(function|event|modifier)>[^{]*(\(|,\_s*))@<=<\u\k*((\[[^\]]*\])?[ .)])@=/ skipnl
+syn match solUserType /\v(^\s*(function|event|modifier)>[^{]*(\(|,\_s*))@<=<\u\k*((\[[^\]]*\])?[ .)])@=/
 " Line starts with opening bracket (i.e: tuple declarations)
-syn match solUserType /\v(^\s*(\(|[^)]*,)\s*)@<=<\u\k*((\[[^\]]*\])?[ ,.)])@=/ skipnl
-syn match solUserType /\v(\()@<=\u\k*(\))@=/ skipnl
+syn match solUserType /\v([;}]\_s*\([^)]*)@<=<\u\k*(\_s+\k*)@=/
 " Followed by opening bracket (i.e.: instantiation, casting)
 syn match solUserType /\v(\.|emit\s+|event\s+)@<!<\u\k*(\s*\()@=/
 " Reference with no call (i.e.: enum references)
-syn match solUserType /\v<\u\k*(\.\u\k*>)@=/
-syn match solUserType /\v((\.)@<!<\u\k*\.)@<=<\u\k*(\.|\_s+\k)@=/
+syn match solUserType /\v<\u\k*((\[[^\]]*\])?\.\u\k*(\[[^\]]*\])?)@=/
+syn match solUserType /\v((\.)@<!<\u\k*(\[[^\]]*\])?\.)@<=<\u\k*((\[[^\]]*\])?([.(]|\_s+\k+))@=/
 " Declarations in contained blocks simply starting with an upper-case character
 syn match solUserType contained /\<\u\k*/ skipempty skipwhite
 " Followed by dot (i.e.: call to library methods)
 syn match solUserType /\v<\u\k*(\.)@=/
+
+" Tuple of types after `abi.decode`
+syn region solAbiDecode      start=/\v(<abi\_s*\.\_s*decode\_s*)@<=\(/ end=')' transparent
+syn region solAbiDecodeTuple contained containedin=solAbiDecode start=/\v(,\_s*)@<=\(/ end=')' transparent
+syn match  solUserType       contained containedin=solAbiDecodeTuple /\v<\u\k*>/
 
 hi def link solUserType Type
 
@@ -195,7 +199,7 @@ syn match   solImportName     contained /\<\K\k*/ skipwhite skipempty nextgroup=
 syn keyword solImportAs       contained as skipwhite skipempty nextgroup=solImportName
 syn keyword solImportFrom     contained from skipwhite skipempty nextgroup=solString
 syn match   solImportComma    contained /,/ skipwhite skipempty nextgroup=solImportName,solImportAsterisk,solImportGroup
-syn region  solImportGroup    contained matchgroup=solBrackets start='{' end='}' contains=solImportName,solImportComma,solImportAs,solComment,solLineComment skipwhite skipempty nextgroup=solImportFrom fold
+syn region  solImportGroup    contained matchgroup=solBrackets start='{' end='}' contains=solImportName,solImportComma,solImportAs,solComment,solLineComment skipwhite skipempty nextgroup=solImportFrom
 
 hi def link solImport         Statement
 hi def link solImportFrom     Keyword
@@ -232,7 +236,6 @@ hi def link solEnumName Structure
 " Functions, modifiers and fallbacks
 syn match   solFuncName    /\v(<(function|modifier)\_s+)@<=\K\k*>/
 syn match   solModifierIns /\v(\k)@<!_;/
-syn region  solFuncDef     start=/\v^\_s*(function|modifier)>/ end=/}/ transparent keepend fold
 
 hi def link solFuncName    Function
 hi def link solModifierIns Operator
@@ -267,7 +270,7 @@ syn match   solNatspecParam       contained /\(@inheritdoc\s\+\)\@<=\K\k*/
 syn match   solNatspecParam       contained /\(@return\s\+\)\@<=[a-z_]\k*/
 " We need the lookbehind to match only the first occurence after the tag.
 syn region  solLineComment        start=+//+ end=+$+ oneline contains=@Spell
-syn region  solLineComment        start=+^\s*//+ skip=+\n\s*//+ end=+$+ oneline contains=@Spell
+syn region  solLineComment        start=+^\s*//+ skip=+\n\s*//+ end=+$+ contains=@Spell fold
 syn region  solComment            start="/\*"  end="\*/" contains=@Spell fold
 
 hi def link solCommentTodo        Todo
@@ -303,7 +306,7 @@ call ExtendHighlight('solComment', {
 
 " Yul blocks
 syn keyword yul               assembly skipwhite skipempty nextgroup=yulBody
-syn region  yulBody           contained matchgroup=solBrackets start='{' end='}' contains=yulAssemblyOp,solNumber,yulVarDeclaration,solLineComment,solComment,solString transparent keepend extend fold
+syn region  yulBody           contained matchgroup=solBrackets start='{' end='}' contains=yulAssemblyOp,solNumber,yulVarDeclaration,solLineComment,solComment,solString transparent fold
 syn keyword yulAssemblyOp     contained stop add sub mul div sdiv mod smod exp not lt gt slt sgt eq iszero and or xor byte shl shr sar addmod mulmod signextend keccak256 pc pop mload mstore mstore8 sload sstore msize gas address balance selfbalance caller callvalue calldataload calldatasize calldatacopy codesize codecopy extcodesize extcodecopy returndatasize returndatacopy extcodehash create create2 call callcode delegatecall staticcall return revert selfdestruct invalid log0 log1 log2 log3 log4 chainid basefee origin gasprice blockhash coinbase timestamp number difficulty gaslimit
 syn keyword yulVarDeclaration contained let
 
