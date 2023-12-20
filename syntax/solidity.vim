@@ -18,6 +18,7 @@ function! ExtendHighlight(group, exts)
   endfor
   if has_key(l:hl, 'font')
     " FIXME There is an error using `hlset` when `guifont` is set.
+    " We remove that config to avoid that, but there must be a better way
     unlet l:hl.font
   endif
   call hlset([l:hl])
@@ -27,19 +28,20 @@ syn sync fromstart
 
 " Basic
 
-syn keyword solKeyword         abstract anonymous as break calldata case constant constructor continue default switch revert require assert
+syn keyword solKeyword         abstract anonymous as break case constant constructor continue default switch revert require assert
 syn keyword solKeyword         delete enum final immutable in indexed inline var
-syn keyword solKeyword         is let match memory modifier of
+syn keyword solKeyword         is let match modifier of
 syn keyword solKeyword         contract interface library struct event
 syn keyword solKeyword         function modifier fallback receive
-syn keyword solKeyword         relocatable returns static storage throw type typeof
+syn keyword solKeyword         relocatable returns static throw type typeof
 syn keyword solKeyword         if else for do while
 syn keyword solSpecifier       internal external private public pure view override virtual
 syn keyword solStatement       return import using emit import error
 syn keyword solKeyword         unchecked assmbly try catch
 syn keyword solConstant        true false wei szabo finney ether seconds minutes hours days weeks years
-syn keyword solKeyword this super new selfdestruct
+syn keyword solKeyword         this super new selfdestruct
 syn keyword solBuiltinFunction ecrecover addmod mulmod keccak256 sha256 ripemd160 blockhash
+syn keyword solStorageClass    memory storage calldata
 syn keyword solBuiltinType     mapping bool string
 syn keyword solBuiltinType     int int8 int16 int24 int32 int40 int48 int56 int64 int72 int80 int88 int96 int104 int112 int120 int128 int136 int144 int152 int160 int168 int178 int184 int192 int200 int208 int216 int224 int232 int240 int248 int256
 syn keyword solBuiltinType     uint uint8 uint16 uint24 uint32 uint40 uint48 uint56 uint64 uint72 uint80 uint88 uint96 uint104 uint112 uint120 uint128 uint136 uint144 uint152 uint160 uint168 uint178 uint184 uint192 uint200 uint208 uint216 uint224 uint232 uint240 uint248 uint256
@@ -125,6 +127,7 @@ syn match solGlobalVarMember   contained /\v(msg\_s*\.\_s*)@<=(data|sender|sig|v
 syn match solGlobalVarMember   contained /\v(tx\_s*\.\_s*)@<=(gasprice|origin)>/
 
 hi def link solKeyword          Keyword
+hi def link solStorageClass     Keyword
 hi def link solSpecifier        Keyword
 hi def link solStatement        Statement
 hi def link solConstant         Constant
@@ -159,7 +162,7 @@ hi def link solString   String
 " Beginning of line (i.e.: variable declarations)
 syn match solUserType /\v^\s*\u\k*((\[[^\]]*\])?(\_s+\k))@=/
 " After a comma (i.e.: param list declarations)
-syn match solUserType /\v(^\s*(function|event|modifier)>[^{]*(\(|,\_s*))@<=<\u\k*((\[[^\]]*\])?[ .)])@=/
+syn match solUserType /\v(^\s*(function|event|modifier|constructor)>[^{]*(\(|,\_s*))@<=<\u\k*((\[[^\]]*\])?[ .)])@=/
 " Line starts with opening bracket (i.e: tuple declarations)
 syn match solUserType /\v([;}]\_s*\([^)]*)@<=<\u\k*(\_s+\k*)@=/
 " Followed by opening bracket (i.e.: instantiation, casting)
@@ -275,34 +278,19 @@ syn region  solComment            start="/\*"  end="\*/" contains=@Spell fold
 
 hi def link solCommentTodo        Todo
 hi def link solNatspecTag         SpecialComment
-" Add italics to NatSpec tag
-call ExtendHighlight('solNatspecTag', {
-      \ 'gui': #{ italic: v:true },
-      \ 'cterm': #{ italic: v:true },
-      \ 'term': #{ italic: v:true }
-      \ })
 hi def link solNatspecParam       Normal
-" Add italics to NatSpec params
-call ExtendHighlight('solNatspecParam', {
-      \ 'gui': #{ italic: v:true },
-      \ 'cterm': #{ italic: v:true },
-      \ 'term': #{ italic: v:true }
-      \ })
 hi def link solNatspecInheritFrom Normal
 hi def link solLineComment        Comment
-" Add italics to line comment
-call ExtendHighlight('solLineComment', {
-      \ 'gui': #{ italic: v:true },
-      \ 'cterm': #{ italic: v:true },
-      \ 'term': #{ italic: v:true }
-      \ })
 hi def link solComment            Comment
+
+" Add italics to NatSpec tag
+call ExtendHighlight('solNatspecTag',   {'gui': #{ italic: v:true }, 'cterm': #{ italic: v:true }, 'term': #{ italic: v:true }})
+" Add italics to NatSpec params
+call ExtendHighlight('solNatspecParam', {'gui': #{ italic: v:true }, 'cterm': #{ italic: v:true }, 'term': #{ italic: v:true }})
+" Add italics to line comment
+call ExtendHighlight('solLineComment',  {'gui': #{ italic: v:true }, 'cterm': #{ italic: v:true }, 'term': #{ italic: v:true }})
 " Add italics to comment
-call ExtendHighlight('solComment', {
-      \ 'gui': #{ italic: v:true },
-      \ 'cterm': #{ italic: v:true },
-      \ 'term': #{ italic: v:true }
-      \ })
+call ExtendHighlight('solComment',      {'gui': #{ italic: v:true }, 'cterm': #{ italic: v:true }, 'term': #{ italic: v:true }})
 
 " Yul blocks
 syn keyword yul               assembly skipwhite skipempty nextgroup=yulBody
