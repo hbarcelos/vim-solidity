@@ -161,8 +161,10 @@ hi def link solString   String
 
 " Beginning of line (i.e.: variable declarations)
 syn match solUserType /\v^\s*\u\k*((\[[^\]]*\])?(\_s+\k))@=/
-" After a comma (i.e.: param list declarations)
+" Param list declarations
 syn match solUserType /\v(^\s*(function|event|modifier|constructor)>[^{]*(\(|,\_s*))@<=<\u\k*((\[[^\]]*\])?[ .)])@=/
+" Return type declarations
+syn match solUserType /\v(<returns>\_s*(\(|[^,]*,\_s*)*)@<=<\u\k*((\[[^\]]*\])?[ .)])@=/
 " Line starts with opening bracket (i.e: tuple declarations)
 syn match solUserType /\v([;}]\_s*\([^)]*)@<=<\u\k*(\_s+\k*)@=/
 " Followed by opening bracket (i.e.: instantiation, casting)
