@@ -153,29 +153,45 @@ hi def link solOperator Operator
 hi def link solBrackets Normal
 hi def link solSemi     Operator
 hi def link solNumber   Number
-hi def link solFloat    Float
 hi def link solString   String
+
+" Hex literals
+" Support both quote styles with a single pattern
+syn match solHexLiteral /\v<hex(["'])(([0-9a-fA-F]{2})+(_([0-9a-fA-F]{2})+)*)?\1/  contains=solHexKeyword
+
+syn keyword solHexKeyword hex contained
+
+" Invalid patterns - using \1 backreference to ensure matching quotes
+syn match solHexInvalidLiteral /\v<hex(["'])[^"']*\1/ contains=solHexLiteral
+
+hi def link solHexKeyword Keyword
+hi def link solHexLiteral String
+hi def link solHexInvalidLiteral Error
+
+" syn region solParamList start=/\v((constructor|fallback|receive)\_s*)@<=\(/ start=/\v(<((function|event|modifier)\_s*\k+)>\_s*)@<=\(/ end=/)/ transparent
+syn region solReturnList start=/\v(returns\_s*)@<=\(/ end=/\v\)(\_s*\{)@=/ transparent
+syn region solTuple start=/\(^\|,\)\_s*\zs(/ end=/)\ze\_s*\([=,)]\)/ transparent
 
 " User-defined types
 " warn: this section assumes user-defined types start with an upper-case letter.
 
 " Beginning of line (i.e.: variable declarations)
 syn match solUserType /\v^\s*\u\k*((\[[^\]]*\])?(\_s+\k))@=/
-" Param list declarations
-syn match solUserType /\v(^\s*(function|event|modifier|constructor)>[^{]*(\(|,\_s*))@<=<\u\k*((\[[^\]]*\])?[ .)])@=/
-" Return type declarations
-syn match solUserType /\v(<returns>\_s*(\(|[^,]*,\_s*)*)@<=<\u\k*((\[[^\]]*\])?[ .)])@=/
-" Line starts with opening bracket (i.e: tuple declarations)
-syn match solUserType /\v([;}]\_s*\([^)]*)@<=<\u\k*(\_s+\k*)@=/
 " Followed by opening bracket (i.e.: instantiation, casting)
 syn match solUserType /\v(\.|emit\s+|event\s+)@<!<\u\k*(\s*\()@=/
 " Reference with no call (i.e.: enum references)
 syn match solUserType /\v<\u\k*((\[[^\]]*\])?\.\u\k*(\[[^\]]*\])?)@=/
 syn match solUserType /\v((\.)@<!<\u\k*(\[[^\]]*\])?\.)@<=<\u\k*((\[[^\]]*\])?([.(]|\_s+\k+))@=/
-" Declarations in contained blocks simply starting with an upper-case character
-syn match solUserType contained /\<\u\k*/ skipempty skipwhite
 " Followed by dot (i.e.: call to library methods)
 syn match solUserType /\v<\u\k*(\.)@=/
+" Param list or return tuple declarations
+syn match solUserType contained /\v((\(|,)\s*)@<=<\u\k*/ containedin=solParamList,solReturnList
+syn match solUserType contained /\v<\u\k*(\s+\k+)@=/ containedin=solTuple
+
+" Param list declarations
+syn match solUserType /\v(^\s*(function|event|modifier|constructor)>[^{]*(\(|,\_s*))@<=<\u\k*((\[[^\]]*\])?[ .)])@=/
+" " Return type declarations
+syn match solUserType /\v(<returns>\_s*(\(|[^,]*,\_s*)*)@<=<\u\k*((\[[^\]]*\])?[ .)])@=/
 
 " Tuple of types after `abi.decode`
 syn region solAbiDecode      start=/\v(<abi\_s*\.\_s*decode\_s*)@<=\(/ end=')' transparent
