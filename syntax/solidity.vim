@@ -143,8 +143,8 @@ hi def link solBuiltinFunction  PreProc
 syn match   solOperator /\(!\||\|&\|+\|-\|<\|>\|=\|%\|\/\|*\|\~\|\^\)/
 syn match   solBrackets /[\[\](){}]/
 syn match   solSemi     /;/
-syn match   solNumber   /\v(<0x\x+(_\x+)*>)|(<-?\d+(_\d+)*(\.\d+)*>)/
-syn match   solFloat    /\<-\=\%(\d\+\.\d\+\|\d\+\.\|\.\d\+\)\%([eE][+-]\=\d\+\)\=\>/
+syn match   solNumber   /\v(<0x\x+(_\x+)*>)/
+syn match   solNumber   /\v<-?([1-9]([0-9_]+)*(\.[0-9_]+)?)([eE][+-]?[0-9_]+)?>/
 syn region  solString   start=+"+ skip=+\\\\\|\\$"\|\\"+ end=+"+
 syn region  solString   start=+'+ skip=+\\\\\|\\$'\|\\'+ end=+'+
 syn region  solScope    matchgroup=solBrackets start='{' end='}' transparent fold
