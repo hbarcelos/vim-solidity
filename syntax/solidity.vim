@@ -143,8 +143,12 @@ hi def link solBuiltinFunction  PreProc
 syn match   solOperator /\(!\||\|&\|+\|-\|<\|>\|=\|%\|\/\|*\|\~\|\^\)/
 syn match   solBrackets /[\[\](){}]/
 syn match   solSemi     /;/
+" Hex numbers
 syn match   solNumber   /\v(<0x\x+(_\x+)*>)/
+" Decimal numbers cannot have leading zeroes
 syn match   solNumber   /\v<-?([1-9]([0-9_]+)*(\.[0-9_]+)?)([eE][+-]?[0-9_]+)?>/
+" However 0, 0.0 and 0.1e18 are valid
+syn match   solNumber   /\v<-?0(\.[0-9_]+)?([eE][+-]?[0-9_]+)?>/
 syn region  solString   start=+"+ skip=+\\\\\|\\$"\|\\"+ end=+"+
 syn region  solString   start=+'+ skip=+\\\\\|\\$'\|\\'+ end=+'+
 syn region  solScope    matchgroup=solBrackets start='{' end='}' transparent fold
